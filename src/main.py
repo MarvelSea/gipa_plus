@@ -121,9 +121,7 @@ def train(args):
         dgl.dataloading.NodeDataLoader(
             graph.cpu(),
             train_idx.cpu(),
-            train_sampler,
-            batch_sampler=utils.BatchSampler(len(train_idx), batch_size=args.batch_size),
-            num_workers=8,
+            train_sampler, batch_size=args.batch_size, shuffle=True
         )
     )
 
@@ -136,9 +134,7 @@ def train(args):
         dgl.dataloading.NodeDataLoader(
             graph.cpu(),
             th.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
-            eval_sampler,
-            batch_sampler=utils.BatchSampler(graph.number_of_nodes(), batch_size=args.batch_size),
-            num_workers=8,
+            eval_sampler, batch_size=args.batch_size, shuffle=True
         )
     )
 
@@ -154,6 +150,7 @@ def train(args):
     dur = []
     best_val_score = 0.0
     final_test_score = 0.0
+    train_step = 1
     os.makedirs("./saved_models", exist_ok=True)
     for epoch in range(args.n_epochs):
         model.train()
@@ -165,6 +162,9 @@ def train(args):
             optimizer.zero_grad()
             batch_loss.backward()
             optimizer.step()
+            train_step += 1
+            if train_step % 1000 == 1:
+                print("Step {:d} | Loss {:.4f} ".format(train_step, th.mean(batch_loss)))
             # th.cuda.empty_cache()
 
         if epoch % args.eval_every == 0:
