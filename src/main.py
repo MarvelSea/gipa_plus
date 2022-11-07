@@ -118,11 +118,9 @@ def train(args):
         train_sampler = dgl.dataloading.MultiLayerFullNeighborSampler(args.n_layers)
 
     train_dataloader = dgl.dataloading.DataLoader(
-        dgl.dataloading.NodeDataLoader(
             graph.cpu(),
             train_idx.cpu(),
             train_sampler, batch_size=args.batch_size, shuffle=True
-        )
     )
 
     if args.sampling > 0:
@@ -131,11 +129,9 @@ def train(args):
         eval_sampler = dgl.dataloading.MultiLayerFullNeighborSampler(args.n_layers)
 
     eval_dataloader = dgl.dataloading.DataLoader(
-        dgl.dataloading.NodeDataLoader(
             graph.cpu(),
             th.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
             eval_sampler, batch_size=args.batch_size, shuffle=True
-        )
     )
 
     # tensorboard monitor
