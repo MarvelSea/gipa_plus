@@ -120,7 +120,7 @@ def train(args):
     train_dataloader = dgl.dataloading.DataLoader(
             graph.cpu(),
             train_idx.cpu(),
-            train_sampler, batch_size=args.batch_size, shuffle=True
+            train_sampler, batch_size=args.batch_size, shuffle=True, num_workers=8
     )
 
     if args.sampling > 0:
@@ -131,7 +131,7 @@ def train(args):
     eval_dataloader = dgl.dataloading.DataLoader(
             graph.cpu(),
             th.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
-            eval_sampler, batch_size=args.batch_size, shuffle=True
+            eval_sampler, batch_size=args.batch_size, shuffle=True, num_workers=8
     )
 
     # tensorboard monitor
