@@ -117,7 +117,7 @@ def train(args):
     else:
         train_sampler = dgl.dataloading.MultiLayerFullNeighborSampler(args.n_layers)
 
-    train_dataloader = utils.DataLoaderWrapper(
+    train_dataloader = dgl.dataloading.DataLoader(
         dgl.dataloading.NodeDataLoader(
             graph.cpu(),
             train_idx.cpu(),
@@ -130,7 +130,7 @@ def train(args):
     else:
         eval_sampler = dgl.dataloading.MultiLayerFullNeighborSampler(args.n_layers)
 
-    eval_dataloader = utils.DataLoaderWrapper(
+    eval_dataloader = dgl.dataloading.DataLoader(
         dgl.dataloading.NodeDataLoader(
             graph.cpu(),
             th.cat([train_idx.cpu(), val_idx.cpu(), test_idx.cpu()]),
