@@ -157,8 +157,9 @@ def train(args):
         t0 = time.time()
         for input_nodes, output_nodes, blocks in train_dataloader:
             subgraphs = [b.to(dev) for b in blocks]
-            batch_ids = th.arange(len(output_nodes))
-            batch_loss = loss_fcn(model(subgraphs)[batch_ids], subgraphs[-1].dstdata['label'][batch_ids].float())
+            # batch_ids = th.arange(len(output_nodes))
+            batch_loss=loss_fcn(model(subgraphs), subgraphs[-1].dstdata['label'].float())
+            # batch_loss = loss_fcn(model(subgraphs)[batch_ids], subgraphs[-1].dstdata['label'][batch_ids].float())
             optimizer.zero_grad()
             batch_loss.backward()
             optimizer.step()
