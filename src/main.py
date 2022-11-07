@@ -148,25 +148,28 @@ def train(args):
     final_test_score = 0.0
     train_step = 1
     os.makedirs("./saved_models", exist_ok=True)
+
     for epoch in range(args.n_epochs):
         model.train()
         t0 = time.time()
-        for input_nodes, output_nodes, blocks in train_dataloader:
-            subgraphs = [b.to(dev) for b in blocks]
-            # batch_ids = th.arange(len(output_nodes))
-            batch_loss=loss_fcn(model(subgraphs), subgraphs[-1].dstdata['label'].float())
-            # batch_loss = loss_fcn(model(subgraphs)[batch_ids], subgraphs[-1].dstdata['label'][batch_ids].float())
-            optimizer.zero_grad()
-            batch_loss.backward()
-            optimizer.step()
-            train_step += 1
-            if train_step % 1000 == 1:
-                print("Step {:d} | Loss {:.4f} ".format(train_step, th.mean(batch_loss)))
-            # th.cuda.empty_cache()
+        with train_dataloader.enable_cpu_affinity():
+            for input_nodes, output_nodes, blocks in train_dataloader:
+                subgraphs = [b.to(dev) for b in blocks]
+                # batch_ids = th.arange(len(output_nodes))
+                batch_loss=loss_fcn(model(subgraphs), subgraphs[-1].dstdata['label'].float())
+                # batch_loss = loss_fcn(model(subgraphs)[batch_ids], subgraphs[-1].dstdata['label'][batch_ids].float())
+                optimizer.zero_grad()
+                batch_loss.backward()
+                optimizer.step()
+                train_step += 1
+                if train_step % 100 == 1:
+                    print("Step {:d} | Loss {:.4f} ".format(train_step, th.mean(batch_loss)))
+                # th.cuda.empty_cache()
 
         if epoch % args.eval_every == 0:
-            train_score, val_score, test_score, train_loss, val_loss, test_loss = evaluate(
-                model, eval_dataloader, labels, train_idx, val_idx, test_idx, loss_fcn, evaluator)
+            with eval_dataloader.enable_cpu_affinity():
+                train_score, val_score, test_score, train_loss, val_loss, test_loss = evaluate(
+                    model, eval_dataloader, labels, train_idx, val_idx, test_idx, loss_fcn, evaluator)
 
             if val_score > best_val_score:
                 best_val_score = val_score
