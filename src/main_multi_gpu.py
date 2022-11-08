@@ -81,6 +81,7 @@ def train(rank, world_size, graph, num_classes, n_node_feat, n_edge_feat, split_
     durations = []
     best_val_score = 0.0
     final_test_score = 0.0
+    batch_loss = None
     for epoch in range(args.n_epochs):
         dist.barrier()
         model.train()
@@ -103,7 +104,8 @@ def train(rank, world_size, graph, num_classes, n_node_feat, n_edge_feat, split_
         tt = time.time()
 
         if rank == 0:
-            print(f'epoch: {epoch}, time: {tt - t0}, loss: {batch_loss.cpu().item()}, lr: {opt.state_dict()["param_groups"][0]["lr"]}')
+            print("Epoch: {:05d}, Time(s) {:.4f}, Train Loss {:.4f} , lr: {:.6f}".format(epoch, tt-t0,
+                                                batch_loss.cpu().item(), opt.state_dict()["param_groups"][0]["lr"]))
         durations.append(tt - t0)
         if epoch % args.eval_every == 0:
             model.eval()
@@ -127,7 +129,7 @@ def train(rank, world_size, graph, num_classes, n_node_feat, n_edge_feat, split_
             lr_scheduler.step(val_score)
             
             if rank == 0:
-                print(f'Validation acc: {val_score}, test acc: {test_score}')
+                print("Validation acc: {:.4f}, test acc: {:.4f}".format(val_score, test_score))
                 if val_score > best_val_score:
                     if test_score > 0.85:
 #                         print('full eval')
@@ -154,8 +156,7 @@ if __name__ == '__main__':
     parser.add_argument("--gpu", type=int, default=0, help="gpu")
     parser.add_argument("--dataset", type=str, default='proteins',
                         help="dataset: cora, citeseer, pubmed, amazon, reddit, proteins")
-    parser.add_argument("--data-root", type=str, default='/home/ogb/data/ogb/proteins/',
-                        help="dataset download dir")
+    parser.add_argument("--data-root", type=str, default='./datasets',  help="dataset download dir")
     parser.add_argument("--seed", type=int, default=0, help="random seed")
 
     parser.add_argument("--lr", type=float, default=1e-2, help="learning rate")
